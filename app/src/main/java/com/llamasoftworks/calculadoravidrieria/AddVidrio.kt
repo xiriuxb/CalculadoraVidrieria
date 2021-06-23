@@ -13,7 +13,7 @@ class AddVidrio : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_add_vidrio)
-        window.setLayout(1100,850)
+        window.setLayout(1100,930)
     }
 
     override fun onStart() {
@@ -35,9 +35,10 @@ class AddVidrio : AppCompatActivity() {
         val ancho = vidrio_ancho_l.text.toString().toDouble()
         val precioTotal = vidrio_precio_t.text.toString().toDouble()
         val precioMetro = vidrio_precio_m.text.toString().toDouble()
+        val precioMetro2 = vidrio_precio_m_2.text.toString().toDouble()
         when (lamina.nombre){
-            ""->VidriosFragment.list.add(Lamina(nombre,alto,ancho,precioTotal,precioMetro))
-            else -> VidriosFragment.list[numeroEncontrado]= Lamina(nombre, alto, ancho, precioTotal, precioMetro)
+            ""->VidriosFragment.list.add(Lamina(nombre,alto,ancho,precioTotal,precioMetro,precioMetro2))
+            else -> VidriosFragment.list[numeroEncontrado]= Lamina(nombre, alto, ancho, precioTotal, precioMetro,precioMetro2)
         }
     }
 
@@ -47,5 +48,6 @@ class AddVidrio : AppCompatActivity() {
         vidrio_ancho_l.setText(lamina.ancho.toString())
         vidrio_precio_t.setText(lamina.precioT.toString())
         vidrio_precio_m.setText(lamina.precioM.toString())
+        vidrio_precio_m_2.setText(lamina.precioDos.toString())
     }
 }
