@@ -15,6 +15,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.llamasoftworks.calculadoravidrieria.clases.Lamina
 import com.llamasoftworks.calculadoravidrieria.clases.Vidrio
 import java.lang.NumberFormatException
+import kotlin.math.ceil
+import kotlinx.android.synthetic.main.fragment_lista.*
 
 
 class ListaFragment : Fragment() {
@@ -23,10 +25,10 @@ class ListaFragment : Fragment() {
         var lista = mutableListOf<Vidrio>()
 
         fun calcularPrecio(vidrio:Vidrio):Double{
-            return (((Math.ceil(vidrio.alto/10)*Math.ceil(vidrio.ancho/10))*vidrio.cantidad)/100)*vidrio.tipo.precioM
+            return (((ceil(vidrio.alto/10)*ceil(vidrio.ancho/10))*vidrio.cantidad)/100)*vidrio.tipo.precioM
         }
 
-        var pedazo = Vidrio(0.0,0.0, Lamina("",0.0,0.0,0.0,0.0),0)
+        var pedazo = Vidrio(0.0,0.0, Lamina(""))
 
         var listaSpinner = listOf<String>()
 
@@ -35,26 +37,26 @@ class ListaFragment : Fragment() {
 
     override fun onStart() {
         super.onStart()
-        this.activity?.let { iniciarRecyclerView(ListaFragment.lista, it) }
-        val btnAdd = activity?.findViewById<Button>(R.id.btn_add_to_lista)
-        if (btnAdd != null) {
-            btnAdd.setOnClickListener {
-                addPedazoToList()
-                activity?.findViewById<RecyclerView>(R.id.rv_lista_vidrios)?.adapter?.notifyDataSetChanged()
-            }
+        this.activity?.let { iniciarRecyclerView(lista, it) }
+        btn_add_to_lista.setOnClickListener {
+            addPedazoToList()
+            rv_lista_vidrios.adapter?.notifyDataSetChanged()
         }
-
-        activity?.findViewById<EditText>(R.id.et_cantidad)
-            ?.setOnEditorActionListener(OnEditorActionListener { v, actionId, event ->
+        //ES PARA dAR LA ACCION AL TECLADO CUANDO ESTA EN LA CASILLA DE CANTIDAD
+        et_cantidad.setOnEditorActionListener(OnEditorActionListener { v, actionId, event ->
                 if (actionId == EditorInfo.IME_NULL) {
                     addPedazoToList()
-                    activity?.findViewById<RecyclerView>(R.id.rv_lista_vidrios)?.adapter?.notifyDataSetChanged()
+                    rv_lista_vidrios.adapter?.notifyDataSetChanged()
                     return@OnEditorActionListener true
                 }
                 false
             })
         iniciarSpinner()
+    }
 
+    override fun onResume() {
+        super.onResume()
+        calcTotales()
     }
 
     override fun onCreateView(
@@ -79,40 +81,27 @@ class ListaFragment : Fragment() {
     }
 
     private fun addPedazoToList(){
-        val alto = activity?.findViewById<EditText>(R.id.etAlto2)
-        val ancho = activity?.findViewById<EditText>(R.id.etAncho2)
-        val cantidad = activity?.findViewById<EditText>(R.id.et_cantidad)
-        val nTotalVid = activity?.findViewById<TextView>(R.id.nTotalVidrios)
-        val nTotalMetros = activity?.findViewById<TextView>(R.id.nTotalMetros)
-        val nTotalPrecio = activity?.findViewById<TextView>(R.id.tv_precio)
-        val spinTipo = activity?.findViewById<Spinner>(R.id.spinner)
-        var cant = cantidad?.text.toString()
+        var cant = et_cantidad.text.toString()
         if (cant == "" || cant == "0") cant="1"
+        val vidrio = Vidrio(
+            etAlto2.text.toString().toDouble(),etAncho2.text.toString().toDouble(),
+            VidriosFragment.list[spinner.selectedItemPosition], cant.toInt()
+        )
         try {
             if (posicionSeleccionada==-1){
-                lista.add(
-                        Vidrio(
-                                alto?.text.toString().toDouble(),ancho?.text.toString().toDouble(),
-                                VidriosFragment.list[spinTipo?.selectedItemPosition!!], cant.toInt()
-                        )
-                )
+                lista.add(vidrio)
             }else{
-                lista[posicionSeleccionada] = Vidrio(
-                        alto?.text.toString().toDouble(),ancho?.text.toString().toDouble(),
-                        VidriosFragment.list[spinTipo?.selectedItemPosition!!], cant.toInt()
-                )
+                lista[posicionSeleccionada] = vidrio
                 posicionSeleccionada=-1
             }
 
         }catch (e: NumberFormatException){       }
 
-        alto?.setText("")
-        ancho?.setText("")
-        cantidad?.setText("")
-        alto?.requestFocus()
-        nTotalVid?.text = calcularTotalVidrios().toString()
-        nTotalMetros?.text = calcularTotalMetros().toString()
-        nTotalPrecio?.text = String.format("%.2f", calcularPrecioTotal())
+        etAlto2.setText("")
+        etAncho2.setText("")
+        et_cantidad.setText("")
+        etAlto2.requestFocus()
+        calcTotales()
     }
 
     private fun calcularTotalVidrios():Int{
@@ -124,20 +113,27 @@ class ListaFragment : Fragment() {
     private fun calcularTotalMetros():Double{
         var intp=0.0
         lista.forEach {
-            intp += (Math.ceil(it.alto/10)*Math.ceil(it.ancho/10))*100* it.cantidad
+            intp += (ceil(it.alto/10)*ceil(it.ancho/10))*100* it.cantidad
         }
         return intp/10000
     }
 
     private fun iniciarSpinner(){
-        val spinner: Spinner? = activity?.findViewById(R.id.spinner)
         listaSpinner = VidriosFragment.list.map { lamina -> lamina.nombre }
-        spinner?.adapter = context?.let { ArrayAdapter(it, R.layout.support_simple_spinner_dropdown_item , listaSpinner) }
+        spinner.adapter = context?.let { ArrayAdapter(it, R.layout.support_simple_spinner_dropdown_item , listaSpinner) }
     }
 
     private fun calcularPrecioTotal():Double{
         var total = 0.0
         lista.forEach { total += calcularPrecio(it) }
         return total
+    }
+
+    private fun calcTotales(){
+        if (lista.size>0){
+            nTotalVidrios.text = calcularTotalVidrios().toString()
+            nTotalMetros.text = calcularTotalMetros().toString()
+            tv_precio.text = String.format("%.2f", calcularPrecioTotal())
+        }
     }
 }

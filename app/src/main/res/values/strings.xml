@@ -5,6 +5,8 @@
     <string name="tab_text_3">Vidrios</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">TODO</string>
+    <string name="add">ADD</string>
+    <string name="save">SAVE</string>
 
     <string-array name="planets_array">
 
